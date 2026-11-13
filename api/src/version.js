@@ -4,6 +4,6 @@
 // new number, you know the pipeline deployed your API change.
 // ============================================================
 
-const API_VERSION = "1";
+const API_VERSION = "2";
 
 module.exports = { API_VERSION };
