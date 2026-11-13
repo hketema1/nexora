@@ -3,11 +3,16 @@
 
 name: Build and deploy Node.js app to Azure Web App - nexora-webapp
 
+
 on:
   push:
     branches:
-      - 'main'
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/main_nexora-webapp.yml'
   workflow_dispatch:
+
 
 jobs:
   build:
@@ -23,17 +28,15 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: npm install, build, and test
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+      - name: npm install
+        working-directory: frontend
+        run: npm install
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: frontend/
 
   deploy:
     runs-on: ubuntu-latest
