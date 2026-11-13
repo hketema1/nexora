@@ -1,25 +1,39 @@
-# NEXORA Week 9 — FastAPI starter
+# NEXORA — Persisted budget prototype (FastAPI)
 
-Initial backend work product for INST347, not the finished app. Provides a health check and a budget calculation preview without saving user data.
+This iteration adds saved monthly budgets to the Week 9 FastAPI starter. It is a **single-user development prototype**. There is **no login, user isolation, or production migration system** yet. Do not upload real bank data or deploy publicly.
 
-## Local setup
+## Run locally (Python 3.10+)
 
-From repository root with Python 3.10+:
+From the repository root:
 
-```bash
-python -m venv .venv
-# Windows PowerShell: .venv\Scripts\Activate.ps1
-# macOS/Linux: source .venv/bin/activate
-pip install -r backend/requirements.txt
-pip install pytest httpx
-python -m uvicorn backend.main:app --reload
-```
+    python -m venv .venv
+    # macOS/Linux:
+    source .venv/bin/activate
+    # Windows PowerShell: .venv\Scripts\Activate.ps1
+    pip install -r backend/requirements.txt
+    python -m uvicorn backend.main:app --reload
 
-Open http://127.0.0.1:8000/docs. Test GET /health and POST /budgets/preview.
-Example JSON: `{"category":"Groceries","limit":300,"spent":220}` returns `remaining: 80.0`.
+Open http://127.0.0.1:8000/docs to exercise endpoints. The default database is a local **db.sqlite3** SQLite file; it is ignored by Git.
 
-Run tests from repository root: `python -m pytest tests/test_api.py -q`.
+## Create a monthly budget
 
-## Next steps
-Agree on API contracts; connect PostgreSQL; add Plaid Sandbox; integrate React frontend.
-Never commit keys or .env files.
+POST /budgets (JSON body):
+
+    {"month":"2026-11","category":"Groceries","limit_cents":30000}
+
+A limit_cents value of 30000 means **$300.00**. The response has a generated id. Repeating the same month and category returns **409 Conflict**. GET /budgets?month=2026-11 lists that month's saved budgets; GET /budgets/{id} retrieves one budget. POST /budgets/preview remains available and does not save data.
+
+## Run tests
+
+    pip install pytest httpx
+    python -m pytest tests -q
+
+Tests use their own temporary SQLite database and never touch personal financial data.
+
+## PostgreSQL option (for later Azure development)
+
+Set DATABASE_URL in your local environment to a valid SQLAlchemy connection string such as:
+
+    postgresql+psycopg://USER:PASSWORD@HOST:5432/DATABASE
+
+Use an encrypted connection when connecting to Azure. Never commit credentials or .env files. PostgreSQL schema migrations, authentication, transactions, Plaid, and React integration are **next steps**, not included in this PR.
