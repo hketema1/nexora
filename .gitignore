@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# INST347 Week 11: Azure Functions and Node website
+node_modules/
+local.settings.json
+.env.*
+.DS_Store
