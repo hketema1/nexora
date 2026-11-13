@@ -1,9 +1,16 @@
-name: Frontend checks
+name: Week 11 counter frontend checks
 
 on:
   pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
   push:
     branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.yml'
+  workflow_dispatch:
 
 jobs:
   frontend:
@@ -16,6 +23,26 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm install --no-audit --no-fund
-      - run: npm test
-      - run: npm run build
+      - name: Install starter frontend
+        run: npm install --no-audit --no-fund
+      - name: Verify Node server syntax
+        run: node --check server.js
+      - name: Smoke test website and config endpoint
+        run: |
+          PORT=8123 API_BASE=https://example-functions.azurewebsites.net/api npm start > /tmp/nexora-web.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          ready=0
+          for i in {1..20}; do
+            if curl --silent --fail http://127.0.0.1:8123/ > /tmp/nexora-home.html; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" -ne 1 ]; then
+            cat /tmp/nexora-web.log
+            exit 1
+          fi
+          grep -q 'Team Counter' /tmp/nexora-home.html
+          curl --silent --fail http://127.0.0.1:8123/config | grep -q 'example-functions.azurewebsites.net/api'
